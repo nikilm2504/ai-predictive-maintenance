@@ -47,7 +47,7 @@ To ensure engineering rigor and prevent scope creep, development follows these s
 ### Milestone 2: PostgreSQL + Flyway + Domain Model
 - **Objective**: Establish the relational database schema via Flyway migrations and implement the JPA domain entity models.
 - **Key Deliverables**:
-  - Initial Flyway migration script `V1__init_schema.sql` defining: `users`, `machines`, `sensors`, `telemetries`, `predictions`, `prediction_explanations`, `alerts`, `maintenance_work_orders`, `maintenance_records`.
+  - Initial Flyway migration script `V1__create_initial_schema.sql` defining: `users`, `machines`, `sensors`, `telemetry`, `predictions`, `prediction_explanations`, `alerts`, `maintenance_work_orders`, `maintenance_records`.
   - JPA entities mapping each table, adhering to constraints and foreign keys.
   - Explicit exclusion: `Machine` entity must **not** contain `@OneToMany List<Telemetry>`.
   - Hibernate configuration set to `hibernate.ddl-auto=validate`.

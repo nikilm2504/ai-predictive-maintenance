@@ -175,7 +175,7 @@ erDiagram
     TELEMETRY {
         UUID id PK
         UUID machine_id FK
-        timestamp timestamp
+        timestamp ts
         double vibration
         double temperature
         double current
@@ -185,7 +185,7 @@ erDiagram
     PREDICTION {
         UUID id PK
         UUID machine_id FK
-        timestamp timestamp
+        timestamp ts
         string fault_type
         double failure_probability
         double confidence
@@ -272,14 +272,14 @@ erDiagram
 | `status` | VARCHAR(32) | NOT NULL | `ACTIVE`, `INACTIVE`, `FAULTY` |
 | `installed_at`| TIMESTAMPTZ | NOT NULL | Installation date |
 
-#### `telemetries` (High-Volume Stream)
-> **Crucial JPA Implementation Note**: To prevent catastrophic JVM `OutOfMemoryError` incidents under industrial telemetry loads, `Machine` will **never** contain a collection `List<Telemetry>`. Telemetry records will be indexed on `(machine_id, timestamp DESC)` and fetched via paginated or windowed repository queries only.
+#### `telemetry` (High-Volume Stream)
+> **Crucial JPA Implementation Note**: To prevent catastrophic JVM `OutOfMemoryError` incidents under industrial telemetry loads, `Machine` will **never** contain a collection `List<Telemetry>`. Telemetry records will be indexed on `(machine_id, ts DESC)` and fetched via paginated or windowed repository queries only.
 
 | Field | Type | Constraints | Description |
 | :--- | :--- | :--- | :--- |
 | `id` | UUID | PK, NOT NULL | Unique telemetry point identifier |
 | `machine_id` | UUID | FK -> `machines(id)`, NOT NULL | Target machine identifier |
-| `timestamp` | TIMESTAMPTZ | NOT NULL | Sample collection timestamp |
+| `ts` | TIMESTAMPTZ | NOT NULL | Sample collection timestamp |
 | `vibration` | DOUBLE PRECISION | NOT NULL | Vibration amplitude / velocity (mm/s) |
 | `temperature`| DOUBLE PRECISION | NOT NULL | Surface/bearing temperature (°C) |
 | `current` | DOUBLE PRECISION | NOT NULL | Motor drive current (A) |
@@ -341,7 +341,7 @@ erDiagram
 | `id` | UUID | PK, NOT NULL | Unique record identifier |
 | `work_order_id`| UUID | FK -> `maintenance_work_orders(id)`, NOT NULL | Parent work order |
 | `machine_id` | UUID | FK -> `machines(id)`, NOT NULL | Machine serviced |
-| `performed_by`| UUID | FK -> `users(id)`, NOT NULL | Executing engineer |
+| `performed_by`| UUID | FK -> `users(id)`, NOT NULL | Executing engineer (user reference) |
 | `description`| TEXT | NOT NULL | Findings upon inspection |
 | `action_taken`| TEXT | NOT NULL | Maintenance actions executed |
 | `created_at` | TIMESTAMPTZ | NOT NULL | Record submission timestamp |
