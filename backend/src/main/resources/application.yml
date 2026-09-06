@@ -4,12 +4,43 @@ spring:
   mvc:
     problemdetails:
       enabled: true
-  autoconfigure:
-    # Explicitly exclude DB autoconfiguration for Milestone 1 to allow app to start without PostgreSQL
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
-      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+
+  # ---------------------------------------------------------------------------
+  # DataSource — PostgreSQL
+  # Development defaults are intentionally documented here.
+  # Override with environment variables (SPRING_DATASOURCE_*) in other environments.
+  # ---------------------------------------------------------------------------
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/predictive_maintenance}
+    username: ${SPRING_DATASOURCE_USERNAME:pm_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:pm_password}
+    driver-class-name: org.postgresql.Driver
+
+  # ---------------------------------------------------------------------------
+  # JPA / Hibernate
+  # ddl-auto=validate: Hibernate validates entities against the physical schema
+  # created by Flyway. It does NOT create or modify tables.
+  # See ADR-008.
+  # ---------------------------------------------------------------------------
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+    open-in-view: false
+
+  # ---------------------------------------------------------------------------
+  # Flyway
+  # Flyway is enabled and manages all schema migrations automatically on boot.
+  # Migration scripts are located in: classpath:db/migration/
+  # See ADR-008.
+  # ---------------------------------------------------------------------------
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
 
 server:
   port: 8080
