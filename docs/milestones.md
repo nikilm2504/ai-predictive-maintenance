@@ -114,28 +114,29 @@ To ensure engineering rigor and prevent scope creep, development follows these s
 ---
 
 ### Milestone 7: Feature Extraction + ML Prediction
-- **Objective**: Implement digital signal processing (statistical + FFT) and tabular ML model inference.
+- **Objective**: Implement digital signal processing (statistical + FFT) and tabular ML model inference using a saved model trained offline.
 - **Key Deliverables**:
+  - Telemetry window sizing: Determined experimentally based on sensor sampling frequency, Nyquist criteria for FFT, and model accuracy/latency performance (not fixed to an arbitrary sample count).
   - Feature extraction engine:
     - Time-domain statistics: Mean, Standard Deviation, RMS, Peak-to-Peak, Crest Factor, Kurtosis, Skewness.
     - Frequency-domain FFT: Fast Fourier Transform over vibration window to extract peak frequency and spectral energy bands.
-  - Model pipeline: Trained Random Forest / XGBoost classifier for fault classification (`NORMAL`, `BEARING_FAULT`, `ROTOR_UNBALANCE`, `OVERLOAD`).
+  - Model inference pipeline: The ML model (Random Forest / XGBoost) is trained separately/offline using historical normal/fault datasets. During runtime operation, the Python ML Service loads the saved model artifact to perform low-latency online inference for fault classification (`NORMAL`, `BEARING_FAULT`, `ROTOR_UNBALANCE`, `OVERLOAD`).
   - Inference endpoint: `POST /api/v1/predict` returning fault type, failure probability, and prediction confidence.
-  - Integration with Spring Boot: `PredictionClient` calling the ML service upon window completion.
+  - Integration with Spring Boot: `PredictionClient` calling the ML service upon telemetry window completion.
 - **Dependencies**: Milestone 6.
-- **Acceptance Criteria**: Given a window of telemetry samples, the ML service extracts FFT and statistical features and returns a classified fault type and failure probability.
+- **Acceptance Criteria**: Given a window of telemetry samples, the ML service extracts FFT and statistical features and returns a classified fault type and failure probability using the saved model artifact.
 
 ---
 
 ### Milestone 8: Health Score + Adaptive Threshold
-- **Objective**: Compute dynamic, machine-specific health scores (0–100) and adaptive anomaly thresholds.
+- **Objective**: Compute dynamic, machine-specific health scores (0–100) and adaptive anomaly thresholds derived from historical/normal operating telemetry.
 - **Key Deliverables**:
-  - Baseline calibration algorithm based on historical normal telemetry for each individual machine.
-  - Adaptive thresholding (e.g. dynamic \(3\sigma\) or moving statistical IQR bounds) rather than static hardcoded limits.
+  - Baseline calibration derived from historical/normal operating telemetry for each individual machine.
+  - Adaptive thresholding evaluated and calibrated specifically per machine (the mathematical algorithm will be designed, tested, and determined in this milestone, not pre-implemented).
   - Multi-parameter Health Score formula combining vibration degradation, thermal rise, and electrical stress into a normalized index (100 = Brand New, 0 = Immediate Failure).
   - Storage of health score within the `Prediction` entity.
 - **Dependencies**: Milestone 7.
-- **Acceptance Criteria**: Baseline adapts to individual machine profiles; machines in nominal states score >90, while machines exhibiting degradation show proportionally lower scores.
+- **Acceptance Criteria**: Baseline adapts to individual machine profiles based on historical normal telemetry; machines in nominal states score >90, while machines exhibiting degradation show proportionally lower scores.
 
 ---
 

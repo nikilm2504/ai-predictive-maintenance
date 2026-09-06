@@ -40,18 +40,20 @@ We choose a **Modular Monolith** pattern using Java 21 and Spring Boot 3.x. The 
 
 ---
 
-## ADR-002: Decoupled Python Service for Feature Extraction and ML
+## ADR-002: Decoupled Python ML Service for Feature Extraction and ML
 
 ### Context
 The platform requires advanced digital signal processing (Fast Fourier Transforms) and machine learning routines (Random Forest, XGBoost, TreeSHAP). While Java has libraries like Weka or Deeplearning4j, the Python ecosystem (`pandas`, `numpy`, `scipy`, `scikit-learn`, `shap`) is the undisputed standard for signal processing and explainable AI.
 
 ### Decision
-We decouple the ML computation into a dedicated **Python ML Service** communicating with Spring Boot over an HTTP REST interface (`POST /api/v1/predict`).
+We decouple the ML computation into a dedicated **Python ML Service** communicating with the Spring Boot Modular Monolith over an HTTP REST interface (`POST /api/v1/predict`).
+- **Offline Training vs. Online Inference**: Machine learning models are trained separately/offline on historical baseline and fault datasets. During normal operational runtime, the Python ML Service loads the saved model artifact to execute low-latency online inference.
+- **Architectural Boundary**: The main Java backend remains a Modular Monolith, while the Python component is treated as an auxiliary service for scientific and explainability computation.
 
 ### Consequences
 - **Positive**:
   - Native access to optimized C/Fortran libraries (`numpy`, `scipy.fft`, `scikit-learn`, `shap`).
-  - Python developers and data scientists can iterate on models without touching the Java enterprise backend.
+  - Python developers and data scientists can iterate on models offline without touching the Java enterprise backend.
   - Predictor service can be containerized and scaled independently based on CPU/GPU compute demands.
 - **Negative**:
   - Introduces an HTTP boundary between the backend and ML service.
@@ -113,7 +115,10 @@ Adopt a **phased IoT approach**:
 Predictive maintenance literature frequently mentions deep learning architectures like LSTMs or CNN-LSTMs. However, deep neural networks are black boxes, require vast amounts of labeled training data, demand GPU acceleration, are prone to overfitting on small datasets, and are notoriously difficult to explain to plant maintenance personnel.
 
 ### Decision
-We select **Classical Machine Learning (Random Forest / XGBoost)** coupled with rigorous **Feature Engineering**:
+We select **Classical Machine Learning (Random Forest / XGBoost)** coupled with rigorous **Feature Engineering** and **Machine-Specific Baselines**:
+- **Offline Training & Saved Models**: Models are trained separately/offline; the Python ML Service performs online inference using serialized saved models.
+- **Experimental Window Sizing**: The telemetry window size is not an arbitrary static constant (e.g. 64 or 128 samples); it will be determined experimentally based on sensor sampling frequency, Nyquist criteria for vibration FFT, and model accuracy/latency performance.
+- **Machine-Specific Adaptive Thresholds**: Anomaly thresholds are machine-specific and derived from historical/normal operating telemetry for each individual machine. Rather than assuming static thresholds or prematurely implementing an algorithm, baseline calibration and adaptive thresholding algorithms will be evaluated and determined in Milestone 8.
 - **Time-Domain Statistics**: Root Mean Square (RMS), Peak-to-Peak, Crest Factor, Kurtosis, Skewness, Variance.
 - **Frequency-Domain Signal Processing**: Fast Fourier Transform (FFT) over vibration windows to identify spectral energy peaks (e.g. 1X RPM imbalance, bearing pass frequencies).
 - **Explainability**: TreeSHAP for exact, efficient Shapley value attribution.
@@ -197,8 +202,8 @@ Academic and showcase engineering projects frequently suffer from "resume-driven
 ### Decision
 The following technologies are **explicitly excluded** from initial milestones:
 1. **Kubernetes (K8s) & Microservices**: Docker Compose and the Modular Monolith provide the right operational simplicity.
-2. **Kafka & Redis**: Eclipse Mosquitto (MQTT) and PostgreSQL provide sufficient message throughput and relational caching for the project scale.
-3. **TinyML / Edge AI**: ESP32 microcontrollers are dedicated solely to sensor acquisition and MQTT transport.
+2. **Kafka & Redis**: The initial telemetry messaging architecture is strictly MQTT with Eclipse Mosquitto. Kafka and Redis are excluded to avoid distributed streaming overhead; Mosquitto and PostgreSQL provide reliable ingestion throughput and query performance for the project scale.
+3. **TinyML / Edge AI**: ESP32 microcontrollers are dedicated solely to sensor acquisition and MQTT transport (Phase 2). Telemetry simulator is used exclusively in Phase 1.
 4. **Federated Learning & Complex Digital Twins**: Out of scope for predictive maintenance core objectives.
 
 ### Consequences

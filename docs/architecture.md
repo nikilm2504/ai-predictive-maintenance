@@ -96,13 +96,16 @@ The platform adopts a **Modular Monolith** architecture for the enterprise backe
   - Business logic is strictly housed in `@Service` classes; data access is encapsulated in `@Repository` interfaces.
 
 ### 3.2 Python ML & Signal Processing Service
-- **Why Decoupled?** High-performance scientific routines (SciPy FFT, NumPy vectorized math, scikit-learn ensemble trees, SHAP calculation) are native to Python. Embedding these directly into the JVM via JNI or Python bridges adds brittle native dependencies.
-- **Contract**: Communication between Spring Boot and the Python ML service occurs via structured HTTP REST JSON payloads.
+- **Why Decoupled?** High-performance scientific routines (SciPy FFT, NumPy vectorized math, scikit-learn ensemble trees, SHAP calculation) are native to Python. Embedding these directly into the JVM via JNI or Python bridges adds brittle native dependencies. The main Java backend remains a Modular Monolith, while the Python component is a dedicated Python ML Service.
+- **Offline Training vs. Online Inference**: Machine learning models (e.g., Random Forest / XGBoost) are trained separately/offline using historical baseline and failure datasets. In runtime operation, the Python ML Service does not perform online training; it loads a saved, serialized model artifact to perform low-latency inference, calculate health scores, and generate SHAP explanations on incoming telemetry windows.
+- **Contract**: Communication between Spring Boot and the Python ML service occurs via structured HTTP REST JSON payloads (`POST /api/v1/predict`).
+- **Telemetry Window Sizing**: The telemetry window size is not a fixed architectural constant (such as 64 or 128 samples). Instead, the ML window size will be determined experimentally based on sensor sampling frequency, Nyquist criteria for vibration FFT, and model accuracy/latency performance.
+- **Machine-Specific Adaptive Thresholds**: Anomaly detection thresholds are machine-specific and derived from historical/normal operating telemetry for each individual machine. The specific algorithm and calibration technique for calculating these adaptive bounds will be evaluated and determined in Milestone 8 (no threshold algorithm is pre-implemented).
 - **Responsibilities**:
-  1. Buffer telemetry window (e.g., last 64 or 128 samples).
-  2. Compute statistical features (mean, std, RMS, peak-to-peak, crest factor, kurtosis).
+  1. Buffer a rolling window of recent telemetry samples (sized experimentally).
+  2. Compute statistical features (mean, std, RMS, peak-to-peak, crest factor, kurtosis, skewness).
   3. Compute FFT spectral features on vibration signals (dominant frequency, spectral power).
-  4. Run model inference to produce `failureProbability` and `faultType`.
+  4. Run model inference using the saved, offline-trained model to produce `failureProbability` and `faultType`.
   5. Calculate TreeSHAP values for the current inference window.
   6. Compute normalized `healthScore` (0 to 100).
 
@@ -376,7 +379,7 @@ erDiagram
         ▼
 [Event Trigger / Window Buffer]
         │
-        │ 5. Trigger evaluation once telemetry window (e.g., 64 samples) is ready
+        │ 5. Trigger evaluation once telemetry window (sized based on sampling rate & model needs) is ready
         ▼
 [Python ML Service]
 ```
@@ -390,7 +393,7 @@ erDiagram
 [Python ML Service]
         ├── 2. Extract statistical metrics: RMS, peak-to-peak, kurtosis, crest factor
         ├── 3. Perform Fast Fourier Transform (FFT) on vibration data
-        ├── 4. Evaluate Random Forest / XGBoost model
+        ├── 4. Evaluate saved Random Forest / XGBoost model (trained offline)
         ├── 5. Compute failure probability and health score (0 - 100)
         └── 6. Compute TreeSHAP feature contributions
         │
@@ -402,7 +405,7 @@ erDiagram
         ▼
 [Maintenance Decision Engine]
         │
-        │ 9. Compare Health Score & Failure Probability against adaptive thresholds
+        │ 9. Compare Health Score & Failure Probability against machine-specific adaptive thresholds
         ▼
 [Alert Module]
         │

@@ -10,7 +10,7 @@ In industrial environments, unplanned equipment downtime leads to severe operati
 
 ### Core Objectives
 1. **Multi-Sensor Telemetry Collection**: High-frequency monitoring of Vibration, Temperature, Current, and RPM.
-2. **Abnormal Behavior & Anomaly Detection**: Machine-specific baseline modeling with adaptive thresholds.
+2. **Abnormal Behavior & Anomaly Detection**: Machine-specific baseline modeling with adaptive thresholds derived from historical/normal operating telemetry.
 3. **Failure Prediction & Health Scoring**: Machine learning failure probability estimation alongside an intuitive Health Score (0–100).
 4. **Explainable AI (XAI)**: Prediction transparency via SHAP (SHapley Additive exPlanations) values for every alert.
 5. **Maintenance Decision Engine**: Automatic generation of severity-graded alerts and maintenance work orders.
@@ -36,10 +36,10 @@ Industrial Machine / Telemetry Simulator
        │                                     ▲
        ├── ML Client Service ─────────────┐  │ (Predictions & SHAP)
        │                                  ▼  │
-       │                         Python ML Microservice
+       │                         Python ML Service
        │                         ├── Windowing & Feature Extraction
        │                         ├── FFT Spectral Analysis
-       │                         ├── Random Forest / XGBoost Inference
+       │                         ├── Random Forest / XGBoost Inference (Saved Model)
        │                         └── SHAP Attribution Engine
        │
        ├── Maintenance Decision Engine
@@ -55,7 +55,8 @@ Industrial Machine / Telemetry Simulator
 
 ### Key Architectural Tenets
 - **Modular Monolith Backend**: Built with Java 21 and Spring Boot. No premature microservice complexity. Modules (`machine`, `telemetry`, `prediction`, `alert`, `maintenance`, `ai`, `common`) are strictly isolated within package boundaries.
-- **Dedicated Python ML Service**: Isolated service leveraging the Python scientific stack (`pandas`, `numpy`, `scipy`, `scikit-learn`, `shap`) for heavy numerical, FFT, and explainability computation.
+- **Dedicated Python ML Service**: Isolated service leveraging the Python scientific stack (`pandas`, `numpy`, `scipy`, `scikit-learn`, `shap`) for numerical, FFT, and explainability computation. ML models are trained separately/offline; the Python ML Service loads the saved model artifact to perform online inference during normal operation.
+- **Machine-Specific Adaptive Thresholds**: Anomaly thresholds are machine-specific and derived from historical/normal operating telemetry for each asset, rather than relying on static global limits.
 - **Strict Role for Spring AI**: Spring AI is **not** the ML prediction engine. It handles contextual interpretation, manual lookup (RAG), and engineer dialogue through controlled Spring service tool calls.
 - **Database Schema Integrity**: PostgreSQL schema managed strictly via Flyway migrations. Hibernate operates in `validate` mode.
 - **Scalable Telemetry Mapping**: `Machine` does *not* hold a bidirectional `@OneToMany List<Telemetry>` to prevent memory bottlenecks. Telemetry is queried explicitly via repository methods.
