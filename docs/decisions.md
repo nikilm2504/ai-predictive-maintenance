@@ -74,7 +74,7 @@ If a machine generates tens of thousands of telemetry records per day, loading a
 ### Decision
 We explicitly **forbid** bidirectional collection mappings from `Machine` to `Telemetry`. 
 - The `Machine` entity has **no** reference to `List<Telemetry>`.
-- The `Telemetry` entity holds a unidirectional `machineId` (or unnavigated foreign key).
+- The Telemetry entity stores the machine identifier as a foreign key. No JPA association from Machine to Telemetry is maintained.
 - Telemetry queries are performed exclusively via explicit repository methods with pagination or time bounds:
   `findRecentByMachineId(UUID machineId, Pageable pageable)`
   `findByMachineIdAndTimestampBetween(UUID machineId, Instant start, Instant end)`
@@ -163,7 +163,7 @@ Industrial machines operate under severe safety, operational, and financial cons
 ### Decision
 The system enforces **mandatory Human-in-the-Loop (HITL) approval**:
 - The AI Maintenance Copilot can formulate diagnoses, propose work orders, and recommend maintenance procedures.
-- However, **no sensitive mutating action** (dispatching work orders, modifying machine operational state, or clearing critical safety alerts) can execute without an explicit approval request signed off by an authorized human engineer (`MAINTENANCE_ENGINEER` or `ADMIN`).
+- However, **no sensitive mutating action** (dispatching work orders, modifying machine operational state, or clearing critical safety alerts) can execute without an explicit approval by an authorized human engineer (`MAINTENANCE_ENGINEER` or `ADMIN`).
 
 ### Consequences
 - **Positive**:
