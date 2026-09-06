@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: predictive-maintenance-backend
+  mvc:
+    problemdetails:
+      enabled: true
+  autoconfigure:
+    # Explicitly exclude DB autoconfiguration for Milestone 1 to allow app to start without PostgreSQL
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
