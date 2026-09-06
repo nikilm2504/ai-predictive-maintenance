@@ -143,3 +143,79 @@ All APIs are relative to: `/api/v1`
 - **Response**: `204 No Content`
 - **Error Codes**:
   - `404 Not Found`: Sensor does not exist.
+---
+
+## Telemetry APIs
+
+### Ingest Telemetry
+- **Method**: POST
+- **Endpoint**: /machines/{machineId}/telemetry
+- **Description**: Records a new telemetry reading for a machine.
+- **Request Body**:
+  `json
+  {
+    "timestamp": "2026-09-06T12:30:00Z",
+    "vibration": 2.35,
+    "temperature": 48.7,
+    "current": 5.2,
+    "rpm": 1450.0
+  }
+  `
+- **Response**: 201 Created
+  `json
+  {
+    "id": "323e4567-e89b-12d3-a456-426614174002",
+    "machineId": "123e4567-e89b-12d3-a456-426614174000",
+    "timestamp": "2026-09-06T12:30:00Z",
+    "vibration": 2.35,
+    "temperature": 48.7,
+    "current": 5.2,
+    "rpm": 1450.0
+  }
+  `
+- **Error Codes**:
+  - 400 Bad Request: Validation failure (e.g., NaN/Infinity values, missing fields).
+  - 404 Not Found: Machine does not exist.
+
+### Get Latest Telemetry
+- **Method**: GET
+- **Endpoint**: /machines/{machineId}/telemetry/latest
+- **Description**: Retrieves the most recent telemetry record for a given machine.
+- **Response**: 200 OK (returns Telemetry Response object)
+- **Error Codes**:
+  - 404 Not Found: Machine does not exist, or no telemetry available for the machine.
+
+### Get Telemetry History
+- **Method**: GET
+- **Endpoint**: /machines/{machineId}/telemetry
+- **Description**: Retrieves a paginated list of telemetry records for a machine, sorted by timestamp descending.
+- **Query Parameters**:
+  - page (optional): Page number (default 0).
+  - size (optional): Page size (default 20).
+  - rom (optional): Start time (inclusive, ISO-8601 Instant).
+  - 	o (optional): End time (inclusive, ISO-8601 Instant).
+- **Response**: 200 OK
+  `json
+  {
+    "content": [
+      {
+        "id": "...",
+        "machineId": "...",
+        "timestamp": "2026-09-06T12:30:00Z",
+        "vibration": 2.35,
+        "temperature": 48.7,
+        "current": 5.2,
+        "rpm": 1450.0
+      }
+    ],
+    "page": {
+      "size": 20,
+      "number": 0,
+      "totalElements": 1,
+      "totalPages": 1
+    }
+  }
+  `
+- **Error Codes**:
+  - 400 Bad Request: Invalid time range (e.g., rom is after 	o).
+  - 404 Not Found: Machine does not exist.
