@@ -463,3 +463,9 @@ A dedicated Python service (ml-service/) handles feature engineering:
   - *Frequency (FFT)*: Vibration telemetry is translated into the frequency domain yielding dominant frequencies, bypassing physical hardware coupling through configurable VIBRATION_SAMPLING_FREQ.
   
 *Note: FFT analysis acts strictly as a feature extractor, not as an outright predictor. These metrics serve as robust inputs for supervised Machine Learning models built in future milestones.*
+
+### Alerting & Maintenance Recommendations
+- **Alert Generation**: Machine risk conditions (derived from ML predictions like risk level, health score) are processed deterministically. A HIGH or CRITICAL risk yields an active Alert.
+- **Deduplication**: Active risk conditions prevent duplicate alert spam. Unresolved alerts are upgraded if risk severity increases, or maintained if equal.
+- **Maintenance Decision Engine**: Recommends actions (INSPECT_VIBRATION_SYSTEM, etc.) and determines priority based on the top SHAP contributors and the overall machine Risk Level.
+- **Boundary**: Spring Boot handles the persistence, orchestration, and deduplication of alerts, plus deterministic maintenance decisions. The ML Service handles strictly prediction math. (No LLMs or AI assistants evaluate the actual maintenance rule logic).

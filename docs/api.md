@@ -219,3 +219,54 @@ All APIs are relative to: `/api/v1`
 - **Error Codes**:
   - 400 Bad Request: Invalid time range (e.g., rom is after 	o).
   - 404 Not Found: Machine does not exist.
+---
+
+## Alert APIs
+
+### Get All Alerts
+- **Method**: GET
+- **Endpoint**: /alerts
+- **Response**: 200 OK (returns an array of Alert Response objects)
+
+### Get an Alert by ID
+- **Method**: GET
+- **Endpoint**: /alerts/{alertId}
+- **Response**: 200 OK
+  `json
+  {
+    "id": "423e4567-e89b-12d3-a456-426614174003",
+    "machineId": "123e4567-e89b-12d3-a456-426614174000",
+    "predictionId": "523e4567-e89b-12d3-a456-426614174004",
+    "severity": "HIGH",
+    "status": "OPEN",
+    "title": "Machine Risk Level: HIGH",
+    "description": "Health Score: 25.0, Failure Probability: 0.85\nRecommended Action: INSPECT_VIBRATION_SYSTEM\nReason: Elevated vibration is the primary contributor to the predicted failure risk.",
+    "createdAt": "2026-09-07T12:00:00Z",
+    "acknowledgedAt": null,
+    "resolvedAt": null
+  }
+  `
+- **Error Codes**:
+  - 404 Not Found: Alert does not exist.
+
+### Get Alerts for a Machine
+- **Method**: GET
+- **Endpoint**: /machines/{machineId}/alerts
+- **Response**: 200 OK (returns an array of Alert Response objects sorted by created date descending)
+- **Error Codes**:
+  - 404 Not Found: Machine does not exist.
+
+### Acknowledge an Alert
+- **Method**: POST
+- **Endpoint**: /alerts/{alertId}/acknowledge
+- **Response**: 200 OK (returns updated Alert Response object with status ACKNOWLEDGED)
+- **Error Codes**:
+  - 404 Not Found: Alert does not exist.
+  - 400 Bad Request: Cannot acknowledge a resolved alert.
+
+### Resolve an Alert
+- **Method**: POST
+- **Endpoint**: /alerts/{alertId}/resolve
+- **Response**: 200 OK (returns updated Alert Response object with status RESOLVED)
+- **Error Codes**:
+  - 404 Not Found: Alert does not exist.
