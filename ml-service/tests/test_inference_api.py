@@ -14,15 +14,16 @@ def ensure_model():
     os.makedirs(models_dir, exist_ok=True)
     model_path = os.path.join(models_dir, "predictive_maintenance_rf_v1.joblib")
     
-    # We create a fake sklearn-like object to bypass full training in unit tests
-    class FakeModel:
-        def predict(self, df):
-            return [1] # Predict FAILURE_RISK
-        def predict_proba(self, df):
-            return [[0.1, 0.9]] # 90% probability of failure
-            
+    # We train a small real model so shap.TreeExplainer doesn't crash on a mock object
+    from sklearn.ensemble import RandomForestClassifier
+    import numpy as np
+    X = np.random.rand(10, 2)
+    y = np.random.randint(0, 2, 10)
+    real_mock_model = RandomForestClassifier(n_estimators=2, random_state=42)
+    real_mock_model.fit(X, y)
+    
     fake_data = {
-        "model": FakeModel(),
+        "model": real_mock_model,
         "features": ["vibration_mean", "temperature_mean"],
         "version": "v1_test"
     }
@@ -91,6 +92,11 @@ def test_predict_success():
     assert "prediction" in data
     assert data["prediction"] in ["NORMAL", "FAILURE_RISK"]
     assert "model_version" in data
+    assert "health_score" in data
+    assert "risk_level" in data
+    assert "baseline_deviations" in data
+    assert "explanations" in data
+    assert type(data["explanations"]) == list
 
 def test_predict_missing_features():
     features = {

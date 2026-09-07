@@ -122,3 +122,75 @@ A lightweight FastAPI application exposes the model:
 - Model is purely a baseline architecture proof-of-concept using deterministic synthetic data.
 - API is not yet dockerized.
 - Does not interact with PostgreSQL. Future milestones will integrate this API back into the Spring Boot backend.
+## Milestone 8: Adaptive Thresholds & Machine Health Score
+
+### Why Adaptive Thresholds?
+Static global thresholds fail to account for different machines operating at different normal levels (e.g., a heavy press vibrates more than a lathe). A generic threshold causes false positives or false negatives.
+
+### Baseline Methodology
+We generate a **Machine Baseline** using the machine's historical NORMAL feature vectors (mean and standard deviation).
+`ash
+python -m src.baseline.create_baseline
+`
+This produces persistent JSON baselines (e.g., machine_M001_baseline.json) in models/baselines/.
+
+### Adaptive Threshold & Sensor Deviation Formula
+Incoming features are evaluated against the baseline using a normalized deviation (Z-score):
+Z = |current_value - baseline_mean| / baseline_std
+If aseline_std is near-zero, a small epsilon 1e-6 prevents division by zero.
+Risk per sensor is defined linearly up to an **Adaptive Threshold (K=3.0)**, where  \ge 3.0$ constitutes 100% sensor risk.
+
+### Health Score Formula
+The **Health Score (0-100)** conceptually fuses the statistical deviations with the ML Failure Probability:
+- **ML Weight**: 50%
+- **Sensor Weight**: 50% (Sub-weighted: Vibration 40%, Temp 30%, Current 15%, RPM 15%)
+- Overall Risk = (0.5 * ML_Risk) + (0.5 * Sensor_Risk)
+- Health Score = 100 * (1.0 - Overall_Risk)
+
+### Risk-Level Boundaries
+- HEALTHY: Health Score $\ge$ 80
+- LOW: Health Score $\ge$ 60
+- MEDIUM: Health Score $\ge$ 40
+- HIGH: Health Score $\ge$ 20
+- CRITICAL: Health Score < 20
+
+### API Changes
+The inference API (POST /predict) now accepts an optional machine_id. If provided, it loads the baseline, fuses the ML output with the dynamic statistical sensor deviations, and extends the JSON response to include health_score, isk_level, and aseline_deviations.
+
+*Scientific Caveat: This is an initial statistical approach using synthetic data. Parameters like weights and the 3-sigma rule are baselines requiring real-world empirical validation.*
+
+## Milestone 9: Explainable AI (SHAP)
+
+### Explainability Strategy
+A key requirement for industrial predictive maintenance is understanding *why* an anomaly was predicted. The Random Forest model provides predictions, but SHAP (SHapley Additive exPlanations) is used to explain the relative contributions of individual telemetry features towards that prediction.
+
+### TreeExplainer
+The system uses shap.TreeExplainer specifically tailored for ensemble tree models. It dynamically identifies the index of the FAILURE_RISK class and extracts SHAP values indicating how each feature pushes the risk higher or lower compared to the base dataset expectancy.
+
+### Distinctions
+- **SHAP Explanation**: Answers "Which features influenced the ML model's prediction?"
+- **Baseline Deviation**: Answers "How abnormal is the current machine compared with its own historical normal behavior?"
+- **Causation Caveat**: SHAP explains the *model's internal decision logic*. It does **not** prove physical causation (e.g., it does not prove vibration caused the motor to fail; it proves vibration caused the Random Forest to output a failure prediction).
+
+### API Output
+The /predict payload automatically computes and appends SHAP logic, capped to the TOP_SHAP_FEATURES (configured in config.py, defaults to 5), sorted descending by absolute contribution. Each feature is tagged with a direction (INCREASES_RISK, DECREASES_RISK, NEUTRAL).
+
+`json
+  "explanations": [
+    {
+      "feature_name": "vibration_rms",
+      "shap_value": 0.31,
+      "absolute_shap_value": 0.31,
+      "direction": "INCREASES_RISK"
+    },
+    {
+      "feature_name": "rpm_std",
+      "shap_value": -0.15,
+      "absolute_shap_value": 0.15,
+      "direction": "DECREASES_RISK"
+    }
+  ]
+`
+
+### Performance & Limitations
+SHAP TreeExplainer scales well, but computing SHAP values is more expensive than standard RF predictions. The explainer is loaded once and cached in memory. Future visualization milestones or integrations (like Spring AI) can map this structured payload into human-readable diagnostics or dashboards.

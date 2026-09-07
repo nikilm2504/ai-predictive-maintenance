@@ -217,3 +217,13 @@ The following technologies are **explicitly excluded** from initial milestones:
 - **Decision**: We will use MQTT as the telemetry transport layer. A Python simulator will be used for testing before integrating physical hardware.
 - **Rationale**: MQTT provides lightweight publish/subscribe communication suitable for IoT devices over unreliable networks. We enforce separation between the transport layer (MQTT) and the business logic (TelemetryService), ensuring that REST and MQTT ingestions converge at the service layer.
 - **Consequences**: We accept QoS 1 (at-least-once delivery) for telemetry. This may introduce duplicate telemetry rows. Complex exactly-once (QoS 2 or distributed idempotency) is deliberately excluded from this milestone to maintain simplicity.
+## ADR-009: Adaptive Thresholds & Machine Health Score
+- **Context**: Relying on static, global thresholds (e.g., vibration > 10) is inadequate because industrial machines have different baseline normal operating ranges. A "healthy" vibration level for a heavy press might be a "critical" level for a precision lathe. Furthermore, a binary 'healthy/failing' ML output lacks actionable degradation granularity.
+- **Decision**: 
+  1. We establish a **Machine Baseline** using historical normal telemetry (calculating $\mu$ and $\sigma$ for primary features).
+  2. We calculate **Normalized Deviations** (Z-scores) continuously for incoming data. If $\sigma$ is near-zero, a small $\epsilon$ prevents division by zero.
+  3. We introduce an **Adaptive Threshold (K = 3.0)** where deviations beyond \sigma$ cap out at 100% sensor risk.
+  4. We compute a unified **Health Score (0-100)** by fusing ML failure probability ({ml}=0.5$) with weighted sensor deviation risks ({sensor}=0.5$).
+  5. The Health Score maps to operational **Risk Levels** (HEALTHY, LOW, MEDIUM, HIGH, CRITICAL).
+- **Rationale**: This multi-sensor fusion avoids over-reliance on a single metric, accommodates machine-specific personalities without manual rule-tuning, and provides a continuous health metric (0-100) that degrade gracefully before a catastrophic ML failure boundary is crossed.
+- **Consequences**: Requires historical NORMAL data to bootstrap baselines (src/baseline/create_baseline.py). If a baseline is missing, the API safely falls back to evaluating purely on the ML failure probability. Synthetic data is currently used to simulate baselines.

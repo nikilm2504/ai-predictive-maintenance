@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Extra
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from src.inference.predictor import PredictiveMaintenanceModel
 
@@ -20,14 +20,25 @@ def get_model():
     return model_instance
 
 class PredictRequest(BaseModel):
+    machine_id: str | None = None
     features: Dict[str, float]
 
     model_config = {"extra": "forbid"}
+
+class ExplanationModel(BaseModel):
+    feature_name: str
+    shap_value: float
+    absolute_shap_value: float
+    direction: str
 
 class PredictResponse(BaseModel):
     failure_probability: float
     prediction: str
     model_version: str
+    health_score: float
+    risk_level: str
+    baseline_deviations: Dict[str, float]
+    explanations: List[ExplanationModel]
 
 @app.get("/health")
 def health_check():
@@ -43,7 +54,7 @@ def predict(request: PredictRequest):
         raise HTTPException(status_code=503, detail="Model is not available. Please run training first.")
         
     try:
-        result = m.predict(request.features)
+        result = m.predict(request.features, machine_id=request.machine_id)
         return PredictResponse(**result)
     except ValueError as e:
         # e.g., missing features
