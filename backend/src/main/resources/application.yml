@@ -53,3 +53,7 @@ management:
   endpoint:
     health:
       show-details: always
+mqtt:
+  broker-url: ${MQTT_BROKER_URL:tcp://localhost:1883}
+  client-id: ${MQTT_CLIENT_ID:predictive-maintenance-backend}
+  topic: ${MQTT_TOPIC:machines/+/telemetry}

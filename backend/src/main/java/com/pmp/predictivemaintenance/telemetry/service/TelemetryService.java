@@ -43,6 +43,13 @@ public class TelemetryService {
         return mapToResponse(telemetry);
     }
 
+    @Transactional
+    public TelemetryResponse ingestTelemetryByMachineCode(String machineCode, TelemetryIngestRequest request) {
+        return machineRepository.findByMachineCode(machineCode)
+                .map(machine -> ingestTelemetry(machine.getId(), request))
+                .orElseThrow(() -> new ResourceNotFoundException("Machine not found with code: " + machineCode));
+    }
+
     @Transactional(readOnly = true)
     public TelemetryResponse getLatestTelemetry(UUID machineId) {
         validateMachineExists(machineId);

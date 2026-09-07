@@ -9,4 +9,5 @@ import java.util.UUID;
 @Repository
 public interface MachineRepository extends JpaRepository<Machine, UUID> {
     boolean existsByMachineCode(String machineCode);
+    java.util.Optional<Machine> findByMachineCode(String machineCode);
 }

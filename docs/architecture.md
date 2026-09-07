@@ -452,3 +452,14 @@ erDiagram
 4. **Database Migration**: Schema creation and modifications are exclusively handled by Flyway SQL migrations (`V1__...sql`, `V2__...sql`). Hibernate's `ddl-auto` must remain `validate`.
 5. **Configuration**: Secrets, connection strings, and API keys must be loaded via environment variables or externalized profiles (`application.yml`). Never commit hard-coded secrets.
 6. **Observability**: Spring Boot Actuator enabled for health, metrics, and readiness/liveness probes.
+
+## ML Service and Feature Engineering (Milestone 6)
+
+A dedicated Python service (ml-service/) handles feature engineering:
+- **Decoupled Data Pipeline**: Ingestion happens natively through pandas DataFrames.
+- **Windowing Concept**: Telemetry is processed in contiguous blocks (windows) to extract contextual time-series metrics. Missing internal data points within a window are forward-filled (fill).
+- **Feature Extraction**:
+  - *Statistical*: Mean, std, min, max, peak, peak-to-peak, kurtosis, skewness, and slope.
+  - *Frequency (FFT)*: Vibration telemetry is translated into the frequency domain yielding dominant frequencies, bypassing physical hardware coupling through configurable VIBRATION_SAMPLING_FREQ.
+  
+*Note: FFT analysis acts strictly as a feature extractor, not as an outright predictor. These metrics serve as robust inputs for supervised Machine Learning models built in future milestones.*

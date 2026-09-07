@@ -212,3 +212,8 @@ The following technologies are **explicitly excluded** from initial milestones:
   - Maximizes velocity on core value: feature extraction, explainable ML, and Spring AI copilot assistance.
 - **Negative**:
   - Distributed streaming or multi-cluster deployment is deferred until scale justifies it.
+## ADR-008: MQTT for Telemetry Ingestion
+- **Context**: The predictive maintenance system needs to ingest high-frequency telemetry from IoT devices (ESP32) on industrial machines.
+- **Decision**: We will use MQTT as the telemetry transport layer. A Python simulator will be used for testing before integrating physical hardware.
+- **Rationale**: MQTT provides lightweight publish/subscribe communication suitable for IoT devices over unreliable networks. We enforce separation between the transport layer (MQTT) and the business logic (TelemetryService), ensuring that REST and MQTT ingestions converge at the service layer.
+- **Consequences**: We accept QoS 1 (at-least-once delivery) for telemetry. This may introduce duplicate telemetry rows. Complex exactly-once (QoS 2 or distributed idempotency) is deliberately excluded from this milestone to maintain simplicity.
