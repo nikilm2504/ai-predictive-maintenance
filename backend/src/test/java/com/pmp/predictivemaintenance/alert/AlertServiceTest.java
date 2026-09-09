@@ -67,7 +67,7 @@ class AlertServiceTest {
     }
 
     @Test
-    void shouldNotDuplicateAlertIfExistingIsSameOrHigherSeverity() {
+    void shouldNotUpdateAlertIfExistingIsStrictlyHigherSeverity() {
         Alert existingAlert = new Alert(testMachine, testPrediction, AlertSeverity.HIGH, "Title", "Desc");
         existingAlert.setStatus(AlertStatus.OPEN);
 
@@ -82,8 +82,8 @@ class AlertServiceTest {
     }
 
     @Test
-    void shouldUpgradeAlertIfExistingIsLowerSeverity() {
-        Alert existingAlert = new Alert(testMachine, testPrediction, AlertSeverity.MEDIUM, "Title", "Desc");
+    void shouldUpdateAlertIfExistingIsEqualSeverity() {
+        Alert existingAlert = new Alert(testMachine, testPrediction, AlertSeverity.HIGH, "Old Title", "Old Desc");
         existingAlert.setStatus(AlertStatus.OPEN);
 
         when(machineRepository.findById(any())).thenReturn(Optional.of(testMachine));
@@ -91,10 +91,53 @@ class AlertServiceTest {
                 .thenReturn(Optional.of(existingAlert));
         when(alertRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Alert result = alertService.processRiskAssessment(UUID.randomUUID(), testPrediction, "CRITICAL", 10.0, 0.95, List.of());
+        Alert result = alertService.processRiskAssessment(UUID.randomUUID(), testPrediction, "HIGH", 25.0, 0.85, List.of("vibration_rms"));
+
+        assertThat(result.getSeverity()).isEqualTo(AlertSeverity.HIGH);
+        assertThat(result.getDescription()).contains("Health Score: 25.0");
+        verify(alertRepository).save(existingAlert);
+    }
+
+    @Test
+    void shouldUpgradeAlertIfExistingIsLowerSeverity() {
+        Alert existingAlert = new Alert(testMachine, testPrediction, AlertSeverity.LOW, "Machine Risk Level: LOW", "Health Score: 73.36");
+        existingAlert.setStatus(AlertStatus.OPEN);
+
+        when(machineRepository.findById(any())).thenReturn(Optional.of(testMachine));
+        when(alertRepository.findFirstByMachineIdAndStatusInOrderByCreatedAtDesc(any(), any()))
+                .thenReturn(Optional.of(existingAlert));
+        when(alertRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Alert result = alertService.processRiskAssessment(UUID.randomUUID(), testPrediction, "CRITICAL", 10.0, 0.95, List.of("vibration_rms"));
 
         assertThat(result.getSeverity()).isEqualTo(AlertSeverity.CRITICAL);
+        assertThat(result.getTitle()).isEqualTo("Machine Risk Level: CRITICAL");
+        assertThat(result.getDescription()).contains("Health Score: 10.0");
         verify(alertRepository).save(existingAlert);
+    }
+
+    @Test
+    void shouldMapRiskLevelsCorrectly() {
+        when(machineRepository.findById(any())).thenReturn(Optional.of(testMachine));
+        when(alertRepository.findFirstByMachineIdAndStatusInOrderByCreatedAtDesc(any(), any()))
+                .thenReturn(Optional.empty());
+        when(alertRepository.save(any(Alert.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // LOW
+        Alert lowAlert = alertService.processRiskAssessment(UUID.randomUUID(), testPrediction, "LOW", 75.0, 0.1, List.of());
+        assertThat(lowAlert.getSeverity()).isEqualTo(AlertSeverity.LOW);
+
+        // MEDIUM
+        Alert medAlert = alertService.processRiskAssessment(UUID.randomUUID(), testPrediction, "MEDIUM", 50.0, 0.4, List.of());
+        assertThat(medAlert.getSeverity()).isEqualTo(AlertSeverity.MEDIUM);
+
+        // HIGH
+        Alert highAlert = alertService.processRiskAssessment(UUID.randomUUID(), testPrediction, "HIGH", 30.0, 0.7, List.of());
+        assertThat(highAlert.getSeverity()).isEqualTo(AlertSeverity.HIGH);
+
+        // CRITICAL
+        Alert critAlert = alertService.processRiskAssessment(UUID.randomUUID(), testPrediction, "CRITICAL", 10.0, 0.95, List.of());
+        assertThat(critAlert.getSeverity()).isEqualTo(AlertSeverity.CRITICAL);
     }
 
     @Test

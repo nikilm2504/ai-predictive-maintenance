@@ -6,6 +6,8 @@ import com.pmp.predictivemaintenance.machine.repository.MachineRepository;
 import com.pmp.predictivemaintenance.maintenance.MaintenanceDecisionEngine;
 import com.pmp.predictivemaintenance.maintenance.MaintenanceRecommendation;
 import com.pmp.predictivemaintenance.prediction.Prediction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,8 @@ import java.util.UUID;
 
 @Service
 public class AlertService {
+
+    private static final Logger log = LoggerFactory.getLogger(AlertService.class);
 
     private final AlertRepository alertRepository;
     private final MachineRepository machineRepository;
@@ -34,6 +38,8 @@ public class AlertService {
      */
     @Transactional
     public Alert processRiskAssessment(UUID machineId, Prediction prediction, String riskLevel, Double healthScore, Double failureProbability, List<String> topContributors) {
+        log.info("ENTERING processRiskAssessment - Machine: {}, Risk: {}, Health: {}", machineId, riskLevel, healthScore);
+        
         if ("HEALTHY".equalsIgnoreCase(riskLevel)) {
             return null; // No alert generated for healthy machines
         }
@@ -59,17 +65,25 @@ public class AlertService {
 
         if (existingAlertOpt.isPresent()) {
             Alert existingAlert = existingAlertOpt.get();
-            // If the risk hasn't increased, do not create a duplicate
-            if (existingAlert.getSeverity().ordinal() >= targetSeverity.ordinal()) {
-                return existingAlert; // Active alert already covers this severity
+            // If the active alert has a strictly higher severity, do not downgrade it.
+            // (e.g. CRITICAL alert exists, but current reading is HIGH)
+            if (existingAlert.getSeverity().ordinal() > targetSeverity.ordinal()) {
+                log.info("FOUND existing alert {} with strictly higher severity {}. Ignoring target severity {}.", existingAlert.getId(), existingAlert.getSeverity(), targetSeverity);
+                return existingAlert; 
             }
 
-            // If the risk has increased (e.g., MEDIUM -> HIGH), upgrade the severity
+            // If the risk has increased OR remains the same high level, update the alert
+            // to reflect the latest prediction, health score, and recommendations.
+            log.info("UPDATING existing alert {} from severity {} to target severity {}. Updating title and description.", existingAlert.getId(), existingAlert.getSeverity(), targetSeverity);
             existingAlert.setSeverity(targetSeverity);
-            // We could update the description, but let's keep it simple or append
+            existingAlert.setTitle(title);
+            existingAlert.setDescription(description);
+            existingAlert.setPrediction(prediction);
+            
             return alertRepository.save(existingAlert);
         }
 
+        log.info("CREATING new alert for target severity {}", targetSeverity);
         // Create new alert
         Alert alert = new Alert(machine, prediction, targetSeverity, title, description);
         return alertRepository.save(alert);

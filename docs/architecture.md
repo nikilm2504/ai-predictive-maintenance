@@ -469,3 +469,17 @@ A dedicated Python service (ml-service/) handles feature engineering:
 - **Deduplication**: Active risk conditions prevent duplicate alert spam. Unresolved alerts are upgraded if risk severity increases, or maintained if equal.
 - **Maintenance Decision Engine**: Recommends actions (INSPECT_VIBRATION_SYSTEM, etc.) and determines priority based on the top SHAP contributors and the overall machine Risk Level.
 - **Boundary**: Spring Boot handles the persistence, orchestration, and deduplication of alerts, plus deterministic maintenance decisions. The ML Service handles strictly prediction math. (No LLMs or AI assistants evaluate the actual maintenance rule logic).
+## Prediction & Machine Learning Integration
+
+### End-to-End Prediction Flow
+1. **MQTT Ingestion**: Raw telemetry arrives via MQTT and is ingested into PostgreSQL by TelemetryService.
+2. **Asynchronous Orchestration**: Following a successful database commit, the PredictionOrchestrator is triggered.
+3. **Windowing**: The orchestrator retrieves the latest 10 telemetry records for the specific machine.
+4. **Feature Extraction**: Spring Boot sends the raw window to the Python ML Service (POST /features/extract), preserving Python's ownership of feature engineering (statistical + FFT).
+5. **Inference**: The extracted features are sent back to the Python ML Service (POST /predict) to compute the failure probability, health score, risk level, and SHAP explanations.
+6. **Persistence**: The structured prediction and SHAP contributors are stored in the Spring Boot database.
+7. **Decision Engine**: High risk levels trigger the AlertService and MaintenanceDecisionEngine to deduct a recommended maintenance action.
+
+### Boundary Principles
+- **Java Spring Boot**: Orchestration, Database persistence (Alerts, Predictions), Deterministic Maintenance Rules.
+- **Python FastAPI**: Advanced feature extraction (FFT), Baseline deviation processing, Random Forest Inference, SHAP computation.

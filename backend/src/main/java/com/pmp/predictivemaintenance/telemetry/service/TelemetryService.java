@@ -13,16 +13,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+import com.pmp.predictivemaintenance.prediction.service.PredictionOrchestrator;
 
 @Service
 public class TelemetryService {
 
     private final TelemetryRepository telemetryRepository;
     private final MachineRepository machineRepository;
+    private final PredictionOrchestrator predictionOrchestrator;
 
-    public TelemetryService(TelemetryRepository telemetryRepository, MachineRepository machineRepository) {
+    public TelemetryService(TelemetryRepository telemetryRepository, MachineRepository machineRepository, PredictionOrchestrator predictionOrchestrator) {
         this.telemetryRepository = telemetryRepository;
         this.machineRepository = machineRepository;
+        this.predictionOrchestrator = predictionOrchestrator;
     }
 
     @Transactional
@@ -40,6 +45,17 @@ public class TelemetryService {
         );
 
         telemetry = telemetryRepository.save(telemetry);
+        
+        // Trigger prediction pipeline asynchronously, ensuring the current transaction is committed first
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+            new org.springframework.transaction.support.TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    CompletableFuture.runAsync(() -> predictionOrchestrator.evaluateMachineHealth(machineId));
+                }
+            }
+        );
+        
         return mapToResponse(telemetry);
     }
 

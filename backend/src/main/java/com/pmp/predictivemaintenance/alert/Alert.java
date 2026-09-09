@@ -108,6 +108,9 @@ public class Alert {
     public void setAcknowledgedAt(Instant acknowledgedAt) { this.acknowledgedAt = acknowledgedAt; }
     public void setResolvedAt(Instant resolvedAt) { this.resolvedAt = resolvedAt; }
     public void setSeverity(AlertSeverity severity) { this.severity = severity; }
+    public void setTitle(String title) { this.title = title; }
+    public void setDescription(String description) { this.description = description; }
+    public void setPrediction(Prediction prediction) { this.prediction = prediction; }
 
     // -------------------------------------------------------------------------
     // equals / hashCode — identity based on database id only
