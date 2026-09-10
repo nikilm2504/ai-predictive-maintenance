@@ -36,7 +36,9 @@ class PredictiveMaintenanceModel:
         df_input = pd.DataFrame([input_vector], columns=self.features)
         
         predicted_class_idx = int(self.model.predict(df_input)[0])
-        failure_probability = float(self.model.predict_proba(df_input)[0][1])
+        probabilities = self.model.predict_proba(df_input)[0]
+        failure_probability = float(probabilities[1])
+        confidence = float(max(probabilities[0], probabilities[1]))
         
         prediction_label = "FAILURE_RISK" if predicted_class_idx == 1 else "NORMAL"
         
@@ -53,6 +55,7 @@ class PredictiveMaintenanceModel:
         
         return {
             "failure_probability": failure_probability,
+            "confidence": confidence,
             "prediction": prediction_label,
             "model_version": self.version,
             "health_score": health_score,

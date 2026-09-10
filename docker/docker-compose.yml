@@ -1,5 +1,5 @@
-
 services:
+
   postgres:
     image: postgres:16
     container_name: predictive_maintenance_db
@@ -8,12 +8,11 @@ services:
       POSTGRES_USER: pm_user
       POSTGRES_PASSWORD: pm_password
     ports:
-      # Host port 5433 avoids conflict with any local PostgreSQL instance on the default 5432 port.
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U pm_user -d predictive_maintenance" ]
+      test: ["CMD-SHELL", "pg_isready -U pm_user -d predictive_maintenance"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,7 +26,74 @@ services:
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
     restart: unless-stopped
+    
+  simulator:
+    build:
+      context: ../iot/simulator
+      dockerfile: Dockerfile
+    container_name: predictive-maintenance-simulator
+    environment:
+      MQTT_HOST: mqtt-broker
+      MQTT_PORT: 1883
+      MACHINE_CODE: M001
+      PUBLISH_INTERVAL: 2.0
+      MODE: NORMAL
+    depends_on:
+      - mqtt-broker
+    restart: unless-stopped
+
+  ml-service:
+    build:
+      context: ../ml-service
+      dockerfile: Dockerfile
+    container_name: predictive-maintenance-ml
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: predictive-maintenance-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: predictive-maintenance-backend
+    ports:
+      - "8080:8080"
+    environment:
+      JAVA_TOOL_OPTIONS: "--add-opens=java.base/java.net=ALL-UNNAMED"
+
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/predictive_maintenance"
+      SPRING_DATASOURCE_USERNAME: "pm_user"
+      SPRING_DATASOURCE_PASSWORD: "pm_password"
+
+      ML_SERVICE_BASE_URL: "http://ml-service:8000"
+
+      MQTT_BROKER_URL: "tcp://mqtt-broker:1883"
+      MQTT_CLIENT_ID: "predictive-maintenance-backend"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ml-service:
+        condition: service_started
+      mqtt-broker:
+        condition: service_started
+    restart: unless-stopped
 
 volumes:
   postgres_data:
     driver: local
+
+networks:
+  default:
+    name: predictive-maintenance-network
+    external: true

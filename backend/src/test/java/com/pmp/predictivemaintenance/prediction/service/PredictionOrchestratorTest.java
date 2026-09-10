@@ -25,18 +25,32 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PredictionOrchestratorTest {
 
-    @Mock private TelemetryRepository telemetryRepository;
-    @Mock private MachineRepository machineRepository;
-    @Mock private MlPredictionClient mlClient;
-    @Mock private PredictionRepository predictionRepository;
-    @Mock private PredictionExplanationRepository explanationRepository;
-    @Mock private AlertService alertService;
-    @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private TelemetryRepository telemetryRepository;
+
+    @Mock
+    private MachineRepository machineRepository;
+
+    @Mock
+    private MlPredictionClient mlClient;
+
+    @Mock
+    private PredictionRepository predictionRepository;
+
+    @Mock
+    private PredictionExplanationRepository explanationRepository;
+
+    @Mock
+    private AlertService alertService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     private PredictionOrchestrator orchestrator;
 
@@ -45,18 +59,47 @@ class PredictionOrchestratorTest {
     @BeforeEach
     void setUp() {
         orchestrator = new PredictionOrchestrator(
-                telemetryRepository, machineRepository, mlClient,
-                predictionRepository, explanationRepository, alertService, eventPublisher
+                telemetryRepository,
+                machineRepository,
+                mlClient,
+                predictionRepository,
+                explanationRepository,
+                alertService,
+                eventPublisher
         );
-        machine = new Machine("M-001", "Test Machine", "MOTOR", "Factory Floor A");
+
+        machine = new Machine(
+                "M-001",
+                "Test Machine",
+                "MOTOR",
+                "Factory Floor A"
+        );
     }
 
     @Test
     void shouldNotCallMLIfWindowIsTooSmall() {
         UUID machineId = UUID.randomUUID();
-        when(machineRepository.findById(machineId)).thenReturn(Optional.of(machine));
-        when(telemetryRepository.findByMachineIdOrderByTsDesc(eq(machineId), any()))
-                .thenReturn(new PageImpl<>(List.of(new Telemetry(machineId, Instant.now(), 1.0, 40.0, 5.0, 1400.0))));
+
+        when(machineRepository.findById(machineId))
+                .thenReturn(Optional.of(machine));
+
+        when(telemetryRepository.findByMachineIdOrderByTsDesc(
+                eq(machineId),
+                any()
+        )).thenReturn(
+                new PageImpl<>(
+                        List.of(
+                                new Telemetry(
+                                        machineId,
+                                        Instant.now(),
+                                        1.0,
+                                        40.0,
+                                        5.0,
+                                        1400.0
+                                )
+                        )
+                )
+        );
 
         orchestrator.evaluateMachineHealth(machineId);
 
@@ -66,18 +109,35 @@ class PredictionOrchestratorTest {
     @Test
     void shouldHandleMLServiceFailureGracefully() {
         UUID machineId = UUID.randomUUID();
-        when(machineRepository.findById(machineId)).thenReturn(Optional.of(machine));
-        
+
+        when(machineRepository.findById(machineId))
+                .thenReturn(Optional.of(machine));
+
         List<Telemetry> window = new ArrayList<>();
+
         for (int i = 0; i < 10; i++) {
-            window.add(new Telemetry(machineId, Instant.now().minusSeconds(i), 1.0, 40.0, 5.0, 1400.0));
+            window.add(
+                    new Telemetry(
+                            machineId,
+                            Instant.now().minusSeconds(i),
+                            1.0,
+                            40.0,
+                            5.0,
+                            1400.0
+                    )
+            );
         }
-        when(telemetryRepository.findByMachineIdOrderByTsDesc(eq(machineId), any()))
-                .thenReturn(new PageImpl<>(window));
 
-        when(mlClient.extractFeatures(any())).thenThrow(new RuntimeException("Connection refused"));
+        when(telemetryRepository.findByMachineIdOrderByTsDesc(
+                eq(machineId),
+                any()
+        )).thenReturn(new PageImpl<>(window));
 
-        // Method should catch the exception and not propagate, allowing ingestion to continue
+        when(mlClient.extractFeatures(any()))
+                .thenThrow(new RuntimeException("Connection refused"));
+
+        // Method should catch the exception and not propagate,
+        // allowing ingestion to continue.
         orchestrator.evaluateMachineHealth(machineId);
 
         verify(mlClient).extractFeatures(any());
@@ -88,25 +148,61 @@ class PredictionOrchestratorTest {
     @Test
     void shouldProcessEndToEndSuccessfully() {
         UUID machineId = UUID.randomUUID();
-        when(machineRepository.findById(machineId)).thenReturn(Optional.of(machine));
+
+        when(machineRepository.findById(machineId))
+                .thenReturn(Optional.of(machine));
 
         List<Telemetry> window = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            window.add(new Telemetry(machineId, Instant.now().minusSeconds(i), 1.0, 40.0, 5.0, 1400.0));
-        }
-        when(telemetryRepository.findByMachineIdOrderByTsDesc(eq(machineId), any()))
-                .thenReturn(new PageImpl<>(window));
 
-        ExtractFeaturesResponse featureResponse = new ExtractFeaturesResponse(Map.of("vibration_mean", 1.0));
-        when(mlClient.extractFeatures(any())).thenReturn(featureResponse);
+        for (int i = 0; i < 10; i++) {
+            window.add(
+                    new Telemetry(
+                            machineId,
+                            Instant.now().minusSeconds(i),
+                            1.0,
+                            40.0,
+                            5.0,
+                            1400.0
+                    )
+            );
+        }
+
+        when(telemetryRepository.findByMachineIdOrderByTsDesc(
+                eq(machineId),
+                any()
+        )).thenReturn(new PageImpl<>(window));
+
+        ExtractFeaturesResponse featureResponse =
+                new ExtractFeaturesResponse(
+                        Map.of("vibration_mean", 1.0)
+                );
+
+        when(mlClient.extractFeatures(any()))
+                .thenReturn(featureResponse);
 
         PredictResponse predictResponse = new PredictResponse(
-                0.85, "FAILURE_RISK", "v1", 25.0, "HIGH",
-                Map.of(), List.of(new ExplanationDto("vibration_mean", 0.5, 0.5, "INCREASES_RISK"))
+                0.85,   // failure_probability
+                0.85,   // confidence
+                "FAILURE_RISK",
+                "v1",
+                25.0,   // health_score
+                "HIGH",
+                Map.of(),
+                List.of(
+                        new ExplanationDto(
+                                "vibration_mean",
+                                0.5,
+                                0.5,
+                                "INCREASES_RISK"
+                        )
+                )
         );
-        when(mlClient.predict(any())).thenReturn(predictResponse);
 
-        when(predictionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(mlClient.predict(any()))
+                .thenReturn(predictResponse);
+
+        when(predictionRepository.save(any()))
+                .thenAnswer(i -> i.getArgument(0));
 
         orchestrator.evaluateMachineHealth(machineId);
 
@@ -114,6 +210,14 @@ class PredictionOrchestratorTest {
         verify(mlClient).predict(any());
         verify(predictionRepository).save(any());
         verify(explanationRepository).save(any());
-        verify(alertService).processRiskAssessment(eq(machineId), any(), eq("HIGH"), eq(25.0), eq(0.85), any());
+
+        verify(alertService).processRiskAssessment(
+                eq(machineId),
+                any(),
+                eq("HIGH"),
+                eq(25.0),
+                eq(0.85),
+                any()
+        );
     }
 }

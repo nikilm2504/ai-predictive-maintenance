@@ -5,6 +5,7 @@ import java.util.Map;
 
 public record PredictResponse(
     Double failure_probability,
+    Double confidence,
     String prediction,
     String model_version,
     Double health_score,

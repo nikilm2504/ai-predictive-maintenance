@@ -46,3 +46,7 @@ wheels/
 
 # Logs
 *.log
+
+# Temporary API request files
+machine.json
+sensor.json

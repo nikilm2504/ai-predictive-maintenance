@@ -107,7 +107,7 @@ public class PredictionOrchestrator {
                     Instant.now(),
                     predictResponse.prediction(),
                     predictResponse.failure_probability(),
-                    0.0, // Confidence is not provided by current API schema directly, storing 0 or could store probability again
+                    predictResponse.confidence(),
                     predictResponse.health_score(),
                     predictResponse.model_version()
             );
