@@ -12,7 +12,7 @@ def generate_dummy_telemetry(num_records=50):
             'vibration': 1.0 + (i % 3) * 0.5,
             'temperature': 40.0 + (i * 0.1),
             'current': 5.0 + (i % 2) * 0.2,
-            'rpm': 1400.0 + (i % 5) * 10
+            'water_flow': 50.0 + (i % 5) * 0.5
         })
     return pd.DataFrame(data)
 

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Activity, Thermometer, Zap, Settings2 } from 'lucide-react'
+import { ArrowLeft, Activity, Thermometer, Zap, Droplets } from 'lucide-react'
 import { getMachine, getLatestTelemetry, getLatestPrediction, getActiveAlerts, getExplanations, getTelemetryHistory } from '../services/api'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts'
 
@@ -61,7 +61,7 @@ export function MachineDetail({ machineId, onBack }: { machineId: string, onBack
                 <SensorCard title="Vibration" value={telemetry?.vibration} unit="mm/s" icon={<Activity className="h-5 w-5 text-blue-500"/>} />
                 <SensorCard title="Temperature" value={telemetry?.temperature} unit="°C" icon={<Thermometer className="h-5 w-5 text-orange-500"/>} />
                 <SensorCard title="Current" value={telemetry?.current} unit="A" icon={<Zap className="h-5 w-5 text-yellow-500"/>} />
-                <SensorCard title="RPM" value={telemetry?.rpm} unit="rpm" icon={<Settings2 className="h-5 w-5 text-slate-500"/>} />
+                <SensorCard title="Water Flow" value={telemetry?.water_flow ?? (telemetry as any)?.waterFlow} unit="L/min" icon={<Droplets className="h-5 w-5 text-cyan-500"/>} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">

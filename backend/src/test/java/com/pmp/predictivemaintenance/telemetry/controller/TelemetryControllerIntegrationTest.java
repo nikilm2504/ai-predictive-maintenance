@@ -49,7 +49,7 @@ class TelemetryControllerIntegrationTest {
                 2.35,
                 48.7,
                 5.2,
-                1450.0
+                50.0
         );
 
         mockMvc.perform(post("/api/v1/machines/{machineId}/telemetry", testMachine.getId())
@@ -62,7 +62,7 @@ class TelemetryControllerIntegrationTest {
                 .andExpect(jsonPath("$.vibration", is(2.35)))
                 .andExpect(jsonPath("$.temperature", is(48.7)))
                 .andExpect(jsonPath("$.current", is(5.2)))
-                .andExpect(jsonPath("$.rpm", is(1450.0)));
+                .andExpect(jsonPath("$.water_flow", is(50.0)));
     }
 
     @Test

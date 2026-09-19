@@ -108,7 +108,7 @@ class RawTelemetry(BaseModel):
     vibration: float
     temperature: float
     current: float
-    rpm: float
+    water_flow: float
 
 
 class ExtractFeaturesRequest(BaseModel):
@@ -138,7 +138,7 @@ def extract_features_api(request: ExtractFeaturesRequest):
         [t.model_dump() for t in request.telemetry_window]
     )
 
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df["timestamp"] = pd.to_datetime(df["timestamp"], format="ISO8601")
 
     try:
         # Extract features

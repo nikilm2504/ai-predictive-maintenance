@@ -10,7 +10,9 @@ class PredictiveMaintenanceModel:
         if model_path is None:
             # Default location
             base_dir = os.path.join(os.path.dirname(__file__), "..", "..")
-            model_path = os.path.join(base_dir, "models", "predictive_maintenance_rf_v1.joblib")
+            v2_path = os.path.join(base_dir, "models", "predictive_maintenance_rf_v2.joblib")
+            v1_path = os.path.join(base_dir, "models", "predictive_maintenance_rf_v1.joblib")
+            model_path = v2_path if os.path.exists(v2_path) else v1_path
             
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Model file not found at: {model_path}. Please run training first.")

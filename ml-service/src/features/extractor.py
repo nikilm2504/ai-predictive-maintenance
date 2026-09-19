@@ -8,7 +8,7 @@ def extract_features(window: pd.DataFrame) -> dict:
     Extracts a machine-learning-ready feature vector from a telemetry window.
     
     :param window: A pandas DataFrame containing one window of telemetry.
-                   Expected columns: timestamp, vibration, temperature, current, rpm.
+                   Expected columns: timestamp, vibration, temperature, current, water_flow.
     :return: A dictionary containing the extracted features.
     """
     features = {}
@@ -57,14 +57,14 @@ def extract_features(window: pd.DataFrame) -> dict:
         features['current_range'] = stat.calc_range(curr)
 
     # ---------------------------------------------------------
-    # RPM Features
+    # Water Flow Features
     # ---------------------------------------------------------
-    if 'rpm' in window.columns:
-        rpm_vals = window['rpm'].values
-        features['rpm_mean'] = stat.calc_mean(rpm_vals)
-        features['rpm_std'] = stat.calc_std(rpm_vals)
-        features['rpm_min'] = stat.calc_min(rpm_vals)
-        features['rpm_max'] = stat.calc_max(rpm_vals)
-        features['rpm_range'] = stat.calc_range(rpm_vals)
+    if 'water_flow' in window.columns:
+        wf_vals = window['water_flow'].values
+        features['water_flow_mean'] = stat.calc_mean(wf_vals)
+        features['water_flow_std'] = stat.calc_std(wf_vals)
+        features['water_flow_min'] = stat.calc_min(wf_vals)
+        features['water_flow_max'] = stat.calc_max(wf_vals)
+        features['water_flow_range'] = stat.calc_range(wf_vals)
 
     return features

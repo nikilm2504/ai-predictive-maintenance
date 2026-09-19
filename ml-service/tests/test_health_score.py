@@ -7,14 +7,14 @@ def test_sensor_deviations():
         "vibration_rms": 2.0,
         "temperature_mean": 45.0,
         "current_mean": 6.0,
-        "rpm_mean": 1450.0
+        "water_flow_mean": 55.0
     }
     
     baseline = {
         "vibration_rms": {"mean": 1.0, "std": 0.5},
         "temperature_mean": {"mean": 40.0, "std": 2.5},
         "current_mean": {"mean": 5.0, "std": 0.0}, # Zero std test
-        "rpm_mean": {"mean": 1400.0, "std": 25.0}
+        "water_flow_mean": {"mean": 50.0, "std": 2.5}
     }
     
     devs = calculate_sensor_deviations(features, baseline)
@@ -25,21 +25,21 @@ def test_sensor_deviations():
     assert devs["temperature_mean"] == 2.0
     # current: (6.0 - 5.0) / Z_SCORE_EPSILON
     assert devs["current_mean"] == 1.0 / Z_SCORE_EPSILON
-    # rpm: (1450 - 1400) / 25 = 2.0
-    assert devs["rpm_mean"] == 2.0
+    # water_flow: (55 - 50) / 2.5 = 2.0
+    assert devs["water_flow_mean"] == 2.0
 
 def test_health_score_healthy():
     features = {
         "vibration_rms": 1.1,
         "temperature_mean": 40.5,
         "current_mean": 5.1,
-        "rpm_mean": 1410.0
+        "water_flow_mean": 50.5
     }
     baseline = {
         "vibration_rms": {"mean": 1.0, "std": 0.5},
         "temperature_mean": {"mean": 40.0, "std": 2.5},
         "current_mean": {"mean": 5.0, "std": 0.5},
-        "rpm_mean": {"mean": 1400.0, "std": 25.0}
+        "water_flow_mean": {"mean": 50.0, "std": 2.5}
     }
     
     # Low deviations: Z-scores around 0.2
@@ -57,13 +57,13 @@ def test_health_score_critical():
         "vibration_rms": 5.0,  # huge deviation
         "temperature_mean": 60.0, # huge deviation
         "current_mean": 10.0,
-        "rpm_mean": 800.0
+        "water_flow_mean": 20.0
     }
     baseline = {
         "vibration_rms": {"mean": 1.0, "std": 0.5},
         "temperature_mean": {"mean": 40.0, "std": 2.5},
         "current_mean": {"mean": 5.0, "std": 0.5},
-        "rpm_mean": {"mean": 1400.0, "std": 25.0}
+        "water_flow_mean": {"mean": 50.0, "std": 2.5}
     }
     
     # High Z-scores will cap sensor risk at 1.0

@@ -1,5 +1,7 @@
 package com.pmp.predictivemaintenance.dashboard.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,7 +18,9 @@ public record DashboardUpdateDto(
             Double vibration,
             Double temperature,
             Double current,
-            Double rpm
+            @JsonProperty("water_flow")
+            @JsonAlias({"waterFlow", "water_flow"})
+            Double waterFlow
     ) {}
 
     public record PredictionDto(

@@ -4,7 +4,7 @@ import { Activity, Database, Server, Zap, Cpu, CheckCircle2, XCircle } from 'luc
 import { useSSE } from '../hooks/useSSE'
 
 const fetchSpringHealth = async () => {
-    const { data } = await axios.get('http://localhost:8080/actuator/health')
+    const { data } = await axios.get('http://localhost:8081/actuator/health')
     return data
 }
 

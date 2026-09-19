@@ -12,7 +12,7 @@ def ensure_model():
     base_dir = os.path.join(os.path.dirname(__file__), "..")
     models_dir = os.path.join(base_dir, "models")
     os.makedirs(models_dir, exist_ok=True)
-    model_path = os.path.join(models_dir, "predictive_maintenance_rf_v1.joblib")
+    model_path = os.path.join(models_dir, "predictive_maintenance_rf_v2.joblib")
     
     # We train a small real model so shap.TreeExplainer doesn't crash on a mock object
     from sklearn.ensemble import RandomForestClassifier
@@ -25,7 +25,7 @@ def ensure_model():
     fake_data = {
         "model": real_mock_model,
         "features": ["vibration_mean", "temperature_mean"],
-        "version": "v1_test"
+        "version": "v2_test"
     }
     
     # Only write if it doesn't exist, to not overwrite a real model if it's there
@@ -72,11 +72,11 @@ def test_predict_success():
         "current_max": 5.3,
         "current_rms": 5.2,
         "current_range": 0.2,
-        "rpm_mean": 1450.0,
-        "rpm_std": 10.0,
-        "rpm_min": 1430.0,
-        "rpm_max": 1470.0,
-        "rpm_range": 40.0
+        "water_flow_mean": 50.0,
+        "water_flow_std": 1.0,
+        "water_flow_min": 48.0,
+        "water_flow_max": 52.0,
+        "water_flow_range": 4.0
     }
     
     response = client.post("/predict", json={"features": features})

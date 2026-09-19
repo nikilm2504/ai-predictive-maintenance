@@ -8,5 +8,5 @@ public enum SensorType {
     VIBRATION,
     TEMPERATURE,
     CURRENT,
-    RPM
+    WATER_FLOW
 }

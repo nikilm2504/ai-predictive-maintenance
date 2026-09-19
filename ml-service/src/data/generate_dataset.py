@@ -16,7 +16,7 @@ def generate_machine_telemetry(machine_id: str, mode: str, num_records: int, sta
     vib_base = 1.0
     temp_base = 40.0
     curr_base = 5.0
-    rpm_base = 1400.0
+    water_flow_base = 50.0
     
     for i in range(num_records):
         if mode == 'DEGRADING':
@@ -24,19 +24,20 @@ def generate_machine_telemetry(machine_id: str, mode: str, num_records: int, sta
             vib_base += 0.05
             temp_base += 0.1
             curr_base += 0.02
+            water_flow_base -= 0.05
         
         # Add noise
         vib = max(0.0, vib_base + random.uniform(-0.5, 0.5))
         temp = temp_base + random.uniform(-2.0, 2.0)
         curr = curr_base + random.uniform(-0.5, 0.5)
-        rpm = rpm_base + random.uniform(-50.0, 50.0)
+        water_flow = max(0.0, water_flow_base + random.uniform(-2.0, 2.0))
         
         data.append({
             'timestamp': start_time + timedelta(seconds=i),
             'vibration': vib,
             'temperature': temp,
             'current': curr,
-            'rpm': rpm
+            'water_flow': water_flow
         })
         
     df = pd.DataFrame(data)

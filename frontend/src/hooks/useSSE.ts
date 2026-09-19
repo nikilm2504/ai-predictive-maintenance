@@ -7,7 +7,7 @@ export const useSSE = () => {
     const queryClient = useQueryClient();
 
     useEffect(() => {
-        const eventSource = new EventSource('http://localhost:8080/api/v1/dashboard/stream');
+        const eventSource = new EventSource('http://localhost:8081/api/v1/dashboard/stream');
 
         eventSource.onopen = () => {
             setStatus('connected');
@@ -34,7 +34,8 @@ export const useSSE = () => {
                 vibration: data.telemetry.vibration,
                 temperature: data.telemetry.temperature,
                 current: data.telemetry.current,
-                rpm: data.telemetry.rpm,
+                water_flow: data.telemetry.water_flow ?? (data.telemetry as any).waterFlow,
+                waterFlow: data.telemetry.water_flow ?? (data.telemetry as any).waterFlow,
                 timestamp: data.timestamp
             }));
 

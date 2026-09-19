@@ -16,7 +16,8 @@ export interface Telemetry {
     vibration: number;
     temperature: number;
     current: number;
-    rpm: number;
+    water_flow?: number;
+    waterFlow?: number;
 }
 
 export interface Prediction {
@@ -60,7 +61,8 @@ export interface DashboardUpdateEvent {
         vibration: number;
         temperature: number;
         current: number;
-        rpm: number;
+        water_flow?: number;
+        waterFlow?: number;
     };
     prediction: {
         failureProbability: number;

@@ -52,8 +52,8 @@ public class Telemetry {
     @Column(name = "current", nullable = false)
     private Double current;
 
-    @Column(name = "rpm", nullable = false)
-    private Double rpm;
+    @Column(name = "water_flow", nullable = false)
+    private Double waterFlow;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -64,13 +64,13 @@ public class Telemetry {
     }
 
     public Telemetry(UUID machineId, Instant ts, Double vibration, Double temperature,
-                     Double current, Double rpm) {
+                     Double current, Double waterFlow) {
         this.machineId = machineId;
         this.ts = ts;
         this.vibration = vibration;
         this.temperature = temperature;
         this.current = current;
-        this.rpm = rpm;
+        this.waterFlow = waterFlow;
     }
 
     // -------------------------------------------------------------------------
@@ -83,7 +83,7 @@ public class Telemetry {
     public Double getVibration() { return vibration; }
     public Double getTemperature() { return temperature; }
     public Double getCurrent() { return current; }
-    public Double getRpm() { return rpm; }
+    public Double getWaterFlow() { return waterFlow; }
 
     // -------------------------------------------------------------------------
     // equals / hashCode — identity based on database id only

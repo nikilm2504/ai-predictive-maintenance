@@ -110,7 +110,7 @@ def test_pipeline_output(monkeypatch):
             'vibration': 1.0 + (i % 2), # Alternates 1.0, 2.0
             'temperature': 40.0 + i,    # Trending up
             'current': 5.0,
-            'rpm': 1400.0
+            'water_flow': 50.0
         })
         
     df = pd.DataFrame(data)
@@ -125,3 +125,4 @@ def test_pipeline_output(monkeypatch):
     assert np.isclose(feature_dataset.iloc[0]['temperature_trend'], 1.0)  # steadily increasing by 1
     assert feature_dataset.iloc[0]['current_mean'] == 5.0
     assert feature_dataset.iloc[0]['vibration_mean'] == 1.5
+    assert feature_dataset.iloc[0]['water_flow_mean'] == 50.0

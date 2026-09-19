@@ -17,7 +17,7 @@ state = {
     "vibration_base": 1.0,
     "temperature_base": 40.0,
     "current_base": 5.0,
-    "rpm_base": 1400.0,
+    "water_flow_base": 50.0,
     "ticks": 0
 }
 
@@ -36,21 +36,23 @@ def generate_telemetry():
         state["vibration_base"] += 0.05
         state["temperature_base"] += 0.1
         state["current_base"] += 0.02
+        state["water_flow_base"] -= 0.05
 
     vibration = state["vibration_base"] + random.uniform(-0.5, 0.5)
     temperature = state["temperature_base"] + random.uniform(-2.0, 2.0)
     current = state["current_base"] + random.uniform(-0.5, 0.5)
-    rpm = state["rpm_base"] + random.uniform(-50.0, 50.0)
+    water_flow = state["water_flow_base"] + random.uniform(-1.5, 1.5)
 
     # Ensure no negative values where physically impossible
     vibration = max(0.0, vibration)
+    water_flow = max(0.0, water_flow)
     
     return {
         "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "vibration": round(vibration, 3),
         "temperature": round(temperature, 2),
         "current": round(current, 2),
-        "rpm": round(rpm, 1)
+        "water_flow": round(water_flow, 2)
     }
 
 def main():

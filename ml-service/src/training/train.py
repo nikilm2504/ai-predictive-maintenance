@@ -64,19 +64,19 @@ def train_and_evaluate(data_path: str, model_dir: str):
     
     # Save model
     os.makedirs(model_dir, exist_ok=True)
-    model_path = os.path.join(model_dir, "predictive_maintenance_rf_v1.joblib")
+    model_path = os.path.join(model_dir, "predictive_maintenance_rf_v2.joblib")
     
     # Save the model and the feature ordering
     model_data = {
         "model": clf,
         "features": feature_cols,
-        "version": "v1"
+        "version": "v2"
     }
     joblib.dump(model_data, model_path)
     print(f"\nModel and feature metadata persisted to: {model_path}")
     
     # Save metrics
-    metrics_path = os.path.join(model_dir, "evaluation_metrics_v1.json")
+    metrics_path = os.path.join(model_dir, "evaluation_metrics_v2.json")
     with open(metrics_path, "w") as f:
         json.dump(metrics, f, indent=2)
     print(f"Metrics saved to: {metrics_path}")

@@ -15,7 +15,7 @@ def prepare_telemetry_data(df: pd.DataFrame) -> pd.DataFrame:
     
     # Ensure timestamp is datetime
     if 'timestamp' in df_clean.columns:
-        df_clean['timestamp'] = pd.to_datetime(df_clean['timestamp'])
+        df_clean['timestamp'] = pd.to_datetime(df_clean['timestamp'], format="ISO8601")
         df_clean = df_clean.sort_values(by='timestamp').reset_index(drop=True)
     
     # Missing value strategy for Milestone 6:

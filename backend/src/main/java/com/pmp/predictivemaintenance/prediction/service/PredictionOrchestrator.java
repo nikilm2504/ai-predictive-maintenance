@@ -80,7 +80,7 @@ public class PredictionOrchestrator {
                             t.getVibration(),
                             t.getTemperature(),
                             t.getCurrent(),
-                            t.getRpm()
+                            t.getWaterFlow()
                     ))
                     .sorted(Comparator.comparing(RawTelemetryDto::timestamp))
                     .collect(Collectors.toList());
@@ -152,7 +152,7 @@ public class PredictionOrchestrator {
                     latestTelemetry.getVibration(),
                     latestTelemetry.getTemperature(),
                     latestTelemetry.getCurrent(),
-                    latestTelemetry.getRpm()
+                    latestTelemetry.getWaterFlow()
             );
 
             com.pmp.predictivemaintenance.dashboard.dto.DashboardUpdateDto.PredictionDto pDto = new com.pmp.predictivemaintenance.dashboard.dto.DashboardUpdateDto.PredictionDto(

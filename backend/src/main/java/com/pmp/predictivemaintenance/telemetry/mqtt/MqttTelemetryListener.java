@@ -56,7 +56,7 @@ public class MqttTelemetryListener {
                     mqttMsg.vibration(),
                     mqttMsg.temperature(),
                     mqttMsg.current(),
-                    mqttMsg.rpm()
+                    mqttMsg.waterFlow()
             );
 
             telemetryService.ingestTelemetryByMachineCode(machineCode, request);
@@ -73,7 +73,7 @@ public class MqttTelemetryListener {
 
     private void validatePayload(MqttTelemetryMessage msg) {
         if (msg.timestamp() == null || msg.vibration() == null || msg.temperature() == null ||
-            msg.current() == null || msg.rpm() == null) {
+            msg.current() == null || msg.waterFlow() == null) {
             throw new IllegalArgumentException("Missing required telemetry fields in JSON payload");
         }
     }

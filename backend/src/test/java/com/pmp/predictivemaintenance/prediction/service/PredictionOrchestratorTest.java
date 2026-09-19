@@ -95,7 +95,7 @@ class PredictionOrchestratorTest {
                                         1.0,
                                         40.0,
                                         5.0,
-                                        1400.0
+                                        50.0
                                 )
                         )
                 )
@@ -123,7 +123,7 @@ class PredictionOrchestratorTest {
                             1.0,
                             40.0,
                             5.0,
-                            1400.0
+                            50.0
                     )
             );
         }
@@ -162,7 +162,7 @@ class PredictionOrchestratorTest {
                             1.0,
                             40.0,
                             5.0,
-                            1400.0
+                            50.0
                     )
             );
         }
@@ -184,7 +184,7 @@ class PredictionOrchestratorTest {
                 0.85,   // failure_probability
                 0.85,   // confidence
                 "FAILURE_RISK",
-                "v1",
+                "v2",
                 25.0,   // health_score
                 "HIGH",
                 Map.of(),

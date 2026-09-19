@@ -49,4 +49,11 @@ class MaintenanceDecisionEngineTest {
         assertThat(rec.priority()).isEqualTo(MaintenancePriority.HIGH);
         assertThat(rec.recommendedAction()).isEqualTo(MaintenanceAction.GENERAL_MACHINE_INSPECTION);
     }
+
+    @Test
+    void shouldRecommendWaterFlowInspectionForWaterFlowAnomaly() {
+        MaintenanceRecommendation rec = engine.evaluate("MEDIUM", 55.0, 0.5, List.of("water_flow_mean"));
+        assertThat(rec.priority()).isEqualTo(MaintenancePriority.MEDIUM);
+        assertThat(rec.recommendedAction()).isEqualTo(MaintenanceAction.INSPECT_WATER_FLOW_SYSTEM);
+    }
 }

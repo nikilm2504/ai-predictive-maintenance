@@ -41,7 +41,7 @@ public class TelemetryService {
                 request.vibration(),
                 request.temperature(),
                 request.current(),
-                request.rpm()
+                request.waterFlow()
         );
 
         telemetry = telemetryRepository.save(telemetry);
@@ -111,7 +111,7 @@ public class TelemetryService {
         if (!Double.isFinite(request.vibration()) ||
             !Double.isFinite(request.temperature()) ||
             !Double.isFinite(request.current()) ||
-            !Double.isFinite(request.rpm())) {
+            !Double.isFinite(request.waterFlow())) {
             throw new IllegalArgumentException("Sensor values must be finite numeric values (no NaN or Infinity)");
         }
     }
@@ -124,7 +124,7 @@ public class TelemetryService {
                 telemetry.getVibration(),
                 telemetry.getTemperature(),
                 telemetry.getCurrent(),
-                telemetry.getRpm()
+                telemetry.getWaterFlow()
         );
     }
 }

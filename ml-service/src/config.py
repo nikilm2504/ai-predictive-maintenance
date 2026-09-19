@@ -15,7 +15,7 @@ SENSOR_WEIGHTS = {
     "vibration": 0.40,
     "temperature": 0.30,
     "current": 0.15,
-    "rpm": 0.15
+    "water_flow": 0.15
 }
 
 # Features selected to represent each sensor for the health baseline calculation
@@ -23,7 +23,7 @@ PRIMARY_BASELINE_FEATURES = {
     "vibration": "vibration_rms",
     "temperature": "temperature_mean",
     "current": "current_mean",
-    "rpm": "rpm_mean"
+    "water_flow": "water_flow_mean"
 }
 
 # Explainability Configurations

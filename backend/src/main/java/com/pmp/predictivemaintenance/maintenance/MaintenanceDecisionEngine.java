@@ -53,9 +53,9 @@ public class MaintenanceDecisionEngine {
             } else if (topFeature.contains("current")) {
                 action = MaintenanceAction.INSPECT_CURRENT_LOAD;
                 reason = "Current load anomalies are the primary contributors to the predicted failure risk.";
-            } else if (topFeature.contains("rpm")) {
-                action = MaintenanceAction.INSPECT_RPM_SYSTEM;
-                reason = "RPM fluctuations are the primary contributors to the predicted failure risk.";
+            } else if (topFeature.contains("water_flow") || topFeature.contains("waterflow")) {
+                action = MaintenanceAction.INSPECT_WATER_FLOW_SYSTEM;
+                reason = "Water flow fluctuations are the primary contributors to the predicted failure risk.";
             }
         }
 

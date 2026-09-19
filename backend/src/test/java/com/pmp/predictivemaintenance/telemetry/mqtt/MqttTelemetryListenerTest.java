@@ -41,7 +41,7 @@ class MqttTelemetryListenerTest {
                   "vibration": 2.35,
                   "temperature": 48.7,
                   "current": 5.2,
-                  "rpm": 1450.0
+                  "water_flow": 50.0
                 }
                 """;
 
@@ -54,6 +54,7 @@ class MqttTelemetryListenerTest {
 
         TelemetryIngestRequest request = captor.getValue();
         assertEquals(2.35, request.vibration());
+        assertEquals(50.0, request.waterFlow());
         assertEquals("2026-09-06T12:30:00Z", request.timestamp().toString());
     }
 
@@ -107,7 +108,7 @@ class MqttTelemetryListenerTest {
                   "vibration": 2.35,
                   "temperature": 48.7,
                   "current": 5.2,
-                  "rpm": 1450.0
+                  "water_flow": 50.0
                 }
                 """;
         Message<String> message = createMessage("machines/UNKNOWN/telemetry", payload);
