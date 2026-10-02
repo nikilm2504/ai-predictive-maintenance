@@ -6,7 +6,7 @@ A production-inspired, end-to-end predictive maintenance platform for industrial
 
 ## 📌 Project Overview
 
-In industrial environments, unplanned equipment downtime leads to severe operational and financial losses. This platform continuously collects, monitors, and analyzes multi-sensor telemetry to predict machine failures before they occur, assess machine health, pinpoint root causes with feature attributions, and assist maintenance engineers with AI-driven, human-approved work orders.
+In industrial environments, unplanned equipment downtime leads to severe operational and financial losses. This platform continuously collects, monitors, and analyzes multi-sensor telemetry to predict machine failures before they occur, assess machine health, pinpoint root causes with feature attributions, and assist maintenance engineers with AI-driven, human-approved work orders
 
 ### Core Objectives
 1. **Multi-Sensor Telemetry Collection**: High-frequency monitoring of Vibration, Temperature, Current, and RPM.
