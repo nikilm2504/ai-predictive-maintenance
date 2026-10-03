@@ -4,7 +4,13 @@ spring:
   mvc:
     problemdetails:
       enabled: true
-
+  ai:
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY}
+        chat:
+          options:
+            model: gemini-3.8-flash
   # ---------------------------------------------------------------------------
   # DataSource — PostgreSQL
   # Development defaults are intentionally documented here.
@@ -51,7 +57,7 @@ management:
       exposure:
         include: health,info
       cors:
-        allowed-origins: "http://localhost:5173"
+        allowed-origins: "http://localhost:5173,http://localhost:3000"
         allowed-methods: "GET,OPTIONS"
         allow-credentials: true
   endpoint:
